@@ -1,0 +1,30 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: "Checkout from VCS"
+      uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: Test with dotnet
+      run: dotnet test ./MathExprSolver.Tests/MathExprSolver.Tests.csproj --configuration Release
+    - name: Publish
+      run: dotnet publish MathExprSolver.API/MathExprSolver.API.csproj --no-build -c Release
+    - name: "Upload built app"
+      uses: actions/upload-artifact@v1
+      with:
+        name: spender-backend
+        path: ./MathExprSolver.API/bin/Release/netcoreapp3.1/publish      
