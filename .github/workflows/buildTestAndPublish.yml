@@ -23,8 +23,30 @@ jobs:
       run: dotnet test ./MathExprSolver.Tests/MathExprSolver.Tests.csproj --configuration Release
     - name: Publish
       run: dotnet publish MathExprSolver.API/MathExprSolver.API.csproj --no-build -c Release
-    - name: "Upload built app"
+    - name: "Upload built app to job artifacts"
       uses: actions/upload-artifact@v1
       with:
         name: spender-backend
-        path: ./MathExprSolver.API/bin/Release/netcoreapp3.1/publish      
+        path: ./MathExprSolver.API/bin/Release/netcoreapp3.1/publish
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Zip artifact for release
+        run: zip --junk-paths publish_output ./MathExprSolver.API/bin/Release/netcoreapp3.1/publish
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./publish_output.zip
+        asset_name: math-expr-solver.zip
+        asset_content_type: application/zip
